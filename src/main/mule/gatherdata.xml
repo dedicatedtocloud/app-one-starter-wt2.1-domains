@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<flow name="gatherData" doc:id="b370431e-7c48-4222-8759-0f238c5f0965" >
+		<http:listener doc:name="Listener" doc:id="b8e62e70-a159-4922-b10b-e13e4ea13965" config-ref="HTTP_Listener_config" path="/flights/{destination}" allowedMethods="GET">
+		</http:listener>
+		<set-variable value="#[attributes.uriParams.destination]" doc:name="destination" doc:id="c24cc62f-673a-49c0-83b6-71153a7c3b8b" variableName="destinationCode"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="5529d0bf-9c13-4d54-a152-b1d575e7468d" >
+			<route >
+				<flow-ref doc:name="getAmerican" doc:id="d33ca3af-6215-4300-b681-627cdd407c00" name="getAmerican"/>
+			</route>
+			<route >
+				<flow-ref doc:name="getUnited" doc:id="0128b1de-7307-45d9-b363-5073e51bb791" name="getUnited"/>
+			</route>
+			<route >
+				<flow-ref doc:name="getDelta" doc:id="85a6bff1-e964-47bb-8778-3c4121a8be8a" name="getDelta"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Convert to JSON" doc:id="9249779c-bddd-4393-8719-3b51960cdfa6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload as Array)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
